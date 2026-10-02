@@ -1,0 +1,16 @@
+name = "pcforge"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "dist"
+
+# ── Cloudflare D1 (database) ──────────────────────────────────────────────────
+# Create it with `npm run db:create`, then paste the returned database_id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "pcforge-db"
+database_id = "37c6221b-8d78-466d-a8c6-7aeb916e16bd"
+
+# ── Cloudflare KV (price cache) ───────────────────────────────────────────────
+# Create it with `wrangler kv namespace create PRICE_CACHE`, then paste the id.
+[[kv_namespaces]]
+binding = "PRICE_CACHE"
+id = "af9afa458a0d4dbc882d5ddd97e06be9"
