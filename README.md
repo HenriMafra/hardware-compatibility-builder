@@ -1,55 +1,69 @@
-# 🖥️ Hardware Compatibility Builder — Validador de Montagem de PC & Regras de Compatibilidade
+# Hardware Compatibility Builder: Constraint Satisfaction and Power Headroom Modeling
 
-Ferramenta interativa de montagem de computadores com **motor de validação de compatibilidade física, elétrica e dimensional em tempo real** (soquetes, chipsets, slots de memória, barramento PCIe, dissipação de calor TDP e potência de fonte de alimentação).
-
----
-
-## 📌 Que Problema Resolve?
-
-Montar um PC envolve dezenas de restrições técnicas interdependentes que usuários comuns desconhecem:
-- Se a placa-mãe possui o soquete correto para o processador (ex: LGA1700, AM5, AM4).
-- Se a geração de memória RAM bate com a placa-mãe (DDR4 vs. DDR5).
-- Se a fonte de alimentação (PSU) tem potência suficiente para suprir os picos transitórios de energia de placas de vídeo modernas (ex: normas ATX 3.0 e conectores 12VHPWR).
-- Se as dimensões físicas do cooler ou da placa de vídeo cabem no gabinete escolhido.
-
-O **Hardware Compatibility Builder** resolve isso com um motor de regras que valida cada peça selecionada contra a lista de componentes já inseridos, alertando incompatibilidades instantaneamente antes da compra.
+**Author:** Henri Mafra  
+**License:** MIT License  
+**Domain:** Expert Systems, Constraint Satisfaction Problems (CSP), Computer Engineering  
 
 ---
 
-## ⚙️ Diferencial Técnico & Motor de Regras
+## 1. Overview
 
-### Regras de Compatibilidade Validadas:
-1. **CPU × Motherboard:** Mapeamento bidirecional de Socket (`LGA1700`, `AM5`, `AM4`) e compatibilidade de Chipset (`B650`, `Z790`, `B550`).
-2. **Motherboard × Memória:** Verificação de tipo (`DDR4` vs `DDR5`), quantidade máxima de slots (2 ou 4) e limite de frequência (MHz).
-3. **Cálculo Dinâmico de Potência de Fonte (PSU):**
-   $$\text{Potência Recomendada} = (\text{TDP}_{\text{CPU}} + \text{TDP}_{\text{GPU}} + \text{Margem Motherboard/Drives}) \times 1.25$$
-   Inclui margem de segurança de 25% para evitar desarme por *transient spikes* de GPUs modernas.
+Hardware Compatibility Builder is an analytical configuration engine designed to model and enforce physical, electrical, and dimensional constraints during computer hardware assembly. The system solves the configuration validation problem as a **Deterministic Constraint Satisfaction Problem (CSP)**, preventing architectural incompatibilities (socket mismatches, bus generation conflicts) and modeling transient power excursion risks in modern ATX 3.0 power supply architectures.
 
 ---
 
-## 🏗️ Stack Tecnológica
+## 2. Constraint Satisfaction Model
 
-- **Frontend:** React 18, TypeScript, Tailwind CSS, Framer Motion (diagrama interativo de conexões de cabos).
-- **Backend Edge:** Cloudflare Pages Functions com banco Cloudflare D1.
+Let $C = \{c_{\text{cpu}}, c_{\text{mb}}, c_{\text{ram}}, c_{\text{gpu}}, c_{\text{psu}}, c_{\text{case}}\}$ represent the selected hardware configuration vector. The system evaluates compatibility over a constraint set $\Phi = \{\phi_1, \dots, \phi_m\}$:
+
+### 2.1. Topological and Interface Constraints
+1. **Socket Interlocking:**
+   $$\phi_1(c_{\text{cpu}}, c_{\text{mb}}) \iff \text{Socket}(c_{\text{cpu}}) = \text{Socket}(c_{\text{mb}})$$
+2. **Memory Generation and Topology:**
+   $$\phi_2(c_{\text{ram}}, c_{\text{mb}}) \iff \text{DDR}(c_{\text{ram}}) = \text{DDR}(c_{\text{mb}}) \;\land\; \text{Dimms}(c_{\text{ram}}) \le \text{Slots}(c_{\text{mb}})$$
+3. **PCIe Bus Width and Form Factor:**
+   $$\phi_3(c_{\text{gpu}}, c_{\text{case}}) \iff \text{Length}(c_{\text{gpu}}) \le \text{MaxGpuLength}(c_{\text{case}})$$
+
+### 2.2. Power Supply Sizing and Transient Excursions
+Modern GPUs exhibit transient power spikes exceeding continuous Thermal Design Power (TDP) by up to $2.0\times$ for durations of $1\text{ms}$ to $10\text{ms}$. The continuous load $W_{\text{cont}}$ and peak load $W_{\text{peak}}$ are modeled as:
+
+$$W_{\text{cont}} = \text{TDP}(c_{\text{cpu}}) + \text{TDP}(c_{\text{gpu}}) + \sum_{d \in \text{Peripherals}} W_d$$
+
+$$W_{\text{recommended}} = W_{\text{cont}} \times \gamma, \quad \text{where } \gamma = 1.25$$
 
 ---
 
-## 🚀 Como Executar Localmente
+## 3. Architecture and Implementation
+
+- **Engine Core:** Typed validation pipeline implementing functional predicate composition.
+- **Frontend Layer:** React 18, TypeScript, Tailwind CSS, Framer Motion for connection graph rendering.
+- **Data Persistence:** Cloudflare D1 distributed SQLite containing categorized component schemas.
+
+---
+
+## 4. Setup and Execution
 
 ```bash
-# 1. Clone o repositório
+# 1. Clone repository
 git clone https://github.com/HenriMafra/hardware-compatibility-builder.git
 cd hardware-compatibility-builder
 
-# 2. Instale as dependências
+# 2. Install dependencies
 npm install
 
-# 3. Inicie o servidor local
+# 3. Start local development server
 npm run dev
 ```
 
 ---
 
-## 📄 Licença
+## 5. References
 
-Distribuído sob a licença **MIT**. Desenvolvido por **Henri Mafra**.
+- Russell, S., & Norvig, P. (2020). *Artificial Intelligence: A Modern Approach* (4th ed.). Pearson.
+- Intel Corporation. (2022). *Power Supply Design Guide for Desktop Platform Form Factors (ATX 3.0 / PCIe Gen 5)*.
+
+---
+
+## 6. License
+
+Licensed under the MIT License. Copyright (c) Henri Mafra.
